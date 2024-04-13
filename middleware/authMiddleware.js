@@ -1,10 +1,10 @@
 const jwt = require("jsonwebtoken");
 const Student = require("../models/student");
 
-const requireAuth = (req, res, next) => {
+const authenticated = (req, res, next) => {
   const token = req.cookies.jwt;
   if (token) {
-    jwt.verify(token, "suhag", (err, decodeData) => {
+    jwt.verify(token, process.env.SECRET_KEY, (err, decodeData) => {
       if (err) {
         console.log(err);
       } else {
@@ -17,20 +17,20 @@ const requireAuth = (req, res, next) => {
   }
 };
 
-const checkUser = (req, res, next) => {
-  const token = req.cookies.jwt;
+const checkLoggedInStatus = (req, res) => {
+  let loggedInStatus = false;
+  var token = req.cookies.jwt;
   if (token) {
     try {
-      const decodeData = jwt.verify(token, "suhag");
-      let student = Student.findById(decodeData);
-      res.locals.student = student;
+      jwt.verify(token, process.env.SECRET_KEY);
+      loggedInStatus = true;
     } catch (err) {
-      res.locals.student = null;
+      console.error(err);
     }
-  } else {
+  } /*else {
     res.locals.student = null;
-  }
-  next();
+  }*/
+  res.send({ loggedInStatus });
 };
 
-module.exports = { requireAuth, checkUser };
+module.exports = { authenticated, checkLoggedInStatus };

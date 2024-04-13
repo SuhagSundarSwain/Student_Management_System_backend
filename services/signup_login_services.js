@@ -39,13 +39,18 @@ module.exports.logIn = async (req, res) => {
     const token = createToken(user._id, maxAge);
     res.cookie("jwt", token, {
       maxAge: maxAge * 1000,
-
+      httpOnly: true,
       // sameSite: "none",
       // secure: true,
     });
-    res.status(200).json({ user: user._id });
+
+    res.status(200).json({ userId: user._id });
   } catch (err) {
     const errors = handalError(err);
     res.status(400).json({ errors });
   }
+};
+
+module.exports.logout = (req, res) => {
+  res.cookie("jwt", null, { maxAge: 1, httpOnly:true }).send();
 };

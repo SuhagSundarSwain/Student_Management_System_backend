@@ -5,10 +5,15 @@ const cors = require("cors");
 
 const cookie = require("./cookies/cookie");
 const cookieParser = require("cookie-parser");
-const { requireAuth, checkUser } = require("./middleware/authMiddleware");
+const {
+  authenticated,
+  checkLoggedInStatus,
+} = require("./middleware/authMiddleware");
+const dotenv = require("dotenv");
 
+dotenv.config();
+//set up server
 const app = express();
-
 //middleware
 app.use(express.json()); //to convert the transaction data to js object format between client and server
 app.use(cookieParser()); //middleware for cookies
@@ -20,8 +25,10 @@ app.use(
 );
 
 //connecting to DB and starting the server
-const port = 1412;
-dbURI = "mongodb://127.0.0.1:27017/studentManagement";
+const port = process.env.PORT || 1412;
+const dbURI =
+  process.env.MDB_CONNECT_STRING ||
+  "mongodb://127.0.0.1:27017/studentManagement";
 mongoose
   .connect(dbURI)
   .then((result) =>
@@ -29,12 +36,15 @@ mongoose
       console.log("Server Started successfully at port: ", port)
     )
   )
-  .catch((err) => console.log(err));
+  .catch((err) => console.error(err, "\nCan not find Database"));
 
 //calling middleware
-app.get("/", requireAuth, (req, res) => res.send("hello"));
+app.get("/", authenticated, (req, res) => res.send("hello"));
 // app.get("*", checkUser);
-app.get("/home", checkUser, (req, res) => res.send("home page"));
+app.post(
+  "/loggedin",
+  checkLoggedInStatus /*, (req, res) => res.send("home page")*/
+);
 
 app.use(router);
 app.use(cookie);
